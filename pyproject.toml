@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "securities-lending"
+version = "0.1.0"
+description = "Short interest and borrow rate analysis pipeline — signals at the intersection of securities lending, market microstructure, and return prediction"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Kartik Munjal"},
+]
+keywords = ["quantitative-finance", "short-selling", "market-microstructure", "securities-lending", "alpha-research"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "yfinance>=0.2.40",
+    "pyarrow>=12.0",
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+    "statsmodels>=0.14",
+    "pandas-market-calendars>=4.1",
+    "requests>=2.31",
+    "joblib>=1.3",
+    "pydantic>=2.0",
+    "shap>=0.42",
+    "tqdm>=4.65",
+    "pyyaml>=6.0",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5",
+    "ipykernel>=6.0",
+    "jupytext>=1.15",
+]
+
+[project.scripts]
+sl-fetch = "securities_lending.cli:fetch"
+sl-features = "securities_lending.cli:build_features"
+sl-analyze = "securities_lending.cli:analyze"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=securities_lending --cov-report=term-missing -q"
+filterwarnings = ["ignore::DeprecationWarning"]

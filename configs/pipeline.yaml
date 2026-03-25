@@ -1,0 +1,80 @@
+# Analysis pipeline parameters
+
+features:
+  # Short volume ratio (SVR) rolling windows
+  svr_ma_windows: [5, 10, 20]
+  # Return horizons for lagged features (days)
+  return_lags: [1, 5, 10, 21]
+  # Volatility estimation window
+  vol_window: 20
+  # Cross-sectional winsorization percentile
+  winsor_pct: 0.01
+
+borrow_proxy:
+  # Lendable supply as fraction of float (conservative institutional estimate)
+  lendable_fraction: 0.20
+  # Utilization breakpoints for piecewise rate schedule (fraction, annualized bps)
+  rate_schedule:
+    - [0.00, 25]    # <0%  utilization → general collateral ~25 bps
+    - [0.50, 50]    # 50% utilization → ~50 bps
+    - [0.70, 150]   # 70% utilization → ~150 bps
+    - [0.80, 300]   # 80% utilization → ~300 bps
+    - [0.90, 800]   # 90% utilization → ~800 bps
+    - [0.95, 2000]  # 95% utilization → ~2000 bps (hard to borrow)
+
+signals:
+  # Universe ADV filter (USD) applied before IC computation
+  min_adv_filter: 5_000_000
+
+ic_analysis:
+  # Forward return horizons for IC computation (days)
+  horizons: [1, 5, 10, 21]
+  # Cross-sectional winsorization before Spearman correlation
+  winsor_pct: 0.01
+  # Benjamini-Hochberg FDR threshold
+  fdr_threshold: 0.05
+  # IC rolling window for ICIR computation
+  icir_window: 63
+
+portfolio_sorts:
+  n_quantiles: 5
+  rebalance_freq: "W"  # weekly; "M" for monthly
+  holding_period: 5    # days
+  # Estimated transaction cost (bps, one-way)
+  tc_bps: 5
+  cost_scenarios: [5, 10, 20]  # bps sweep for net-alpha sensitivity
+
+fama_macbeth:
+  # Forward return horizon for FM regression
+  horizon: 5
+  # Newey-West lag truncation
+  nw_lags: 4
+  # Control variables (must exist in features DataFrame)
+  controls:
+    - log_mktcap
+    - ret_1m
+    - ret_12m_skip1m
+    - realized_vol_20d
+    - log_bm_proxy
+
+squeeze_model:
+  # Labeling: return threshold for squeeze event
+  return_threshold: 0.15
+  # DTC threshold (days) for squeeze label
+  dtc_threshold: 5.0
+  # Volume spike ratio for label
+  volume_spike_threshold: 2.0
+  # ML model training window (days)
+  train_window: 252
+  # Walk-forward step size (days)
+  step_size: 21
+  # Test window (days)
+  test_window: 63
+  # Random seed for reproducibility
+  seed: 42
+  # Class weight
+  class_weight: "balanced"
+
+logging:
+  level: INFO
+  format: "%(asctime)s  %(levelname)-8s  %(name)s  %(message)s"

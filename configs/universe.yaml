@@ -1,0 +1,87 @@
+# Stock universe and data parameters
+# Stocks are selected for liquidity (min ADV) and data availability.
+# The pipeline augments this with high-short-interest names to ensure
+# representation across the borrow-cost spectrum.
+
+universe:
+  # Minimum average daily dollar volume (trailing 20 days, USD)
+  min_adv_usd: 10_000_000
+  # Minimum market cap (USD)
+  min_mktcap_usd: 500_000_000
+  # Lookback for universe qualification (days)
+  qualification_window: 63
+
+# Explicit tickers that anchor the universe regardless of ADV filter.
+# Includes both large-cap liquids and historically high-SI names
+# so the borrow-cost distribution has adequate range for calibration.
+tickers:
+  # Mega-cap liquid (always easy to borrow — proxy rate should be near zero)
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - NVDA
+  - META
+  - TSLA
+  - BRK-B
+  - JPM
+  - JNJ
+  # Large-cap diversified
+  - XOM
+  - CVX
+  - UNH
+  - LLY
+  - AVGO
+  - HD
+  - MRK
+  - ABBV
+  - PG
+  - KO
+  - PEP
+  - WMT
+  - BAC
+  - GS
+  - MS
+  - WFC
+  - C
+  - AMD
+  - INTC
+  - MU
+  # Mid-cap / sector diversity
+  - PLTR
+  - RIVN
+  - LCID
+  - SOFI
+  - HOOD
+  - UPST
+  - AFRM
+  - BYND
+  - SPCE
+  - CLOV
+  - WISH
+  - BBBY  # Historical only — went bankrupt 2023
+  # ETFs (useful as market-regime controls)
+  - SPY
+  - QQQ
+  - IWM
+  - XLF
+  - XLK
+  - XLE
+  - ARKK
+  # Historically hard-to-borrow / high-SI names
+  - GME
+  - AMC
+  - CHWY
+  - MSTR
+  - COIN
+
+data:
+  start_date: "2021-01-01"
+  end_date: null  # null → today
+  price_source: yfinance
+  # FINRA Reg SHO daily short volume
+  finra_regsho_base_url: "https://cdn.finra.org/equity/regsho/daily/CNMSshvol{date}.txt"
+  # FINRA biweekly consolidated short interest
+  finra_si_base_url: "https://cdn.finra.org/equity/regsho/biweekly/CNMSshvol{date}.txt"
+  cache_dir: "data/raw"
+  processed_dir: "data/processed"
