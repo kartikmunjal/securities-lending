@@ -55,6 +55,31 @@ The analysis automatically includes:
 These are evaluated in the same IC, portfolio-sort, and Fama-MacBeth framework
 as the original lending signals.
 
+## Run The Crowded-Short x Retail-Attention Backtest
+
+For a concise interview-ready result, run the dedicated interaction backtest:
+
+```bash
+python scripts/run_retail_squeeze_backtest.py \
+  --features data/processed/features.parquet \
+  --alt-factor-dir ../alt-data-equity-signals/results/wsb_retail_attention/factor_panels \
+  --signal borrow_stress_x_wsb_attention \
+  --out data/results/retail_squeeze_backtest.csv
+```
+
+The output reports:
+
+- annualized long-short spread
+- spread Sharpe
+- hit rate
+- top-bucket forward-return hit rate
+- top versus bottom bucket mean return
+
+This directly tests the investment thesis:
+
+> crowded shorts with abnormal retail attention are more likely to produce
+> squeeze-like positive return dislocations.
+
 ## Squeeze Model Extension
 
 The squeeze detector now treats WSB retail-attention columns as optional model
