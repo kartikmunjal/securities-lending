@@ -9,9 +9,12 @@ dist/
 *.egg-info/
 .eggs/
 .venv/
+.venv*/
 venv/
 env/
 *.egg
+.coverage
+htmlcov/
 
 # Data (keep .gitkeep placeholders, ignore actual data files)
 data/raw/finra_regsho/*.txt

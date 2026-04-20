@@ -29,6 +29,12 @@ matplotlib.use("Agg")  # non-interactive backend for script use
 import matplotlib.pyplot as plt
 
 from securities_lending.analysis import ICAnalyzer, PortfolioSorter, FamaMacBeth
+from securities_lending.features.retail_attention import (
+    RETAIL_INTERACTION_COLS,
+    RETAIL_SIGNAL_COLS,
+    load_retail_attention_features,
+    merge_retail_attention,
+)
 from securities_lending.utils.config import load_config
 from securities_lending.viz import (
     plot_ic_tearsheet,
@@ -44,10 +50,11 @@ logger = logging.getLogger(__name__)
 
 # Signals we analyse in IC / portfolio sort
 _SIGNAL_COLS = ["svr_z20", "svr_trend5", "si_pct_float", "si_dtc", "short_pressure",
-                "borrow_rate_bps", "borrow_stress"]
+                "borrow_rate_bps", "borrow_stress", *RETAIL_SIGNAL_COLS,
+                *RETAIL_INTERACTION_COLS]
 
 # Control variables for Fama-MacBeth
-_CONTROL_COLS = ["log_mktcap_proxy", "ret_fwd_21d", "realized_vol_20d"]
+_CONTROL_COLS = ["log_mktcap_proxy", "ret_fwd_21d", "realized_vol_20d", *RETAIL_SIGNAL_COLS]
 
 
 def parse_args() -> argparse.Namespace:
@@ -56,6 +63,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--output-dir", default="data/results")
     p.add_argument("--horizons", nargs="+", type=int, default=[1, 5, 10, 21])
     p.add_argument("--n-quantiles", type=int, default=5)
+    p.add_argument("--alt-factor-dir", default=None,
+                   help="Directory of WSB_*.parquet factor panels from alt-data-equity-signals")
+    p.add_argument("--no-retail-interactions", action="store_true",
+                   help="Disable borrow/crowding x retail-attention interaction features")
     return p.parse_args()
 
 
@@ -75,6 +86,19 @@ def main() -> None:
     features = pd.read_parquet(args.features)
     features["date"] = pd.to_datetime(features["date"])
     features = features.sort_values(["date", "symbol"])
+
+    if args.alt_factor_dir:
+        retail = load_retail_attention_features(args.alt_factor_dir)
+        features = merge_retail_attention(
+            features,
+            retail,
+            add_interactions=not args.no_retail_interactions,
+        )
+        logger.info(
+            "Merged retail-attention alt-data from %s: %s",
+            args.alt_factor_dir,
+            [c for c in RETAIL_SIGNAL_COLS + RETAIL_INTERACTION_COLS if c in features.columns],
+        )
 
     # ── Build panels ──────────────────────────────────────────────────────────
     # Primary return: 5-day forward log return (h=5)

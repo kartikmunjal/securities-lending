@@ -84,6 +84,13 @@ _FEATURE_COLS = [
     # Cross-sectional context
     "svr_percentile",
     "short_pressure",
+    # Optional retail-attention features from alt-data-equity-signals
+    "wsb_mention_z",
+    "wsb_sentiment_z",
+    "wsb_attention_shock_z",
+    "borrow_stress_x_wsb_attention",
+    "dtc_x_wsb_attention",
+    "short_pressure_x_wsb_sentiment",
 ]
 
 
@@ -148,6 +155,7 @@ class SqueezeDetector:
         self.calibrate = calibrate
         self._model: Pipeline | None = None
         self._feature_cols: list[str] = _FEATURE_COLS
+        self._active_feature_cols: list[str] | None = None
 
     # ── Training ──────────────────────────────────────────────────────────────
 
@@ -158,7 +166,9 @@ class SqueezeDetector:
         X must contain the feature columns in _FEATURE_COLS.
         Missing features are handled by HistGradientBoostingClassifier natively.
         """
-        X = X[self._feature_cols].copy()
+        available_cols = [col for col in self._feature_cols if col in X.columns]
+        self._active_feature_cols = available_cols
+        X = X[available_cols].copy()
         y = y.loc[X.index]
 
         base_clf = HistGradientBoostingClassifier(
@@ -198,7 +208,8 @@ class SqueezeDetector:
         """
         if self._model is None:
             raise RuntimeError("Model not trained.  Call fit() first.")
-        X_feat = X[self._feature_cols].copy()
+        available_cols = self._active_feature_cols or [col for col in self._feature_cols if col in X.columns]
+        X_feat = X[available_cols].copy()
         probs = self._model.predict_proba(X_feat)[:, 1]
         return pd.Series(probs, index=X.index, name="squeeze_prob")
 
