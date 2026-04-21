@@ -4,8 +4,6 @@
 
 A research-grade pipeline for studying the relationship between short interest, securities lending costs, market microstructure, and subsequent cross-sectional equity returns.
 
-Built at the intersection of **securities lending mechanics**, **market microstructure**, and **systematic signal research** — the domain focus of Voleon's QTS team.
-
 ---
 
 ## Overview
