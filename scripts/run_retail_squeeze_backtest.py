@@ -10,6 +10,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pandas as pd
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 from securities_lending.analysis.interaction_backtest import backtest_interaction_signal
 from securities_lending.features.retail_attention import (
@@ -40,9 +44,33 @@ def main() -> None:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame([result.as_dict()]).to_csv(out, index=False)
+    fig_path = out.with_suffix(".png")
+    _plot_result(pd.DataFrame([result.as_dict()]), fig_path)
 
     print(pd.DataFrame([result.as_dict()]).round(4).to_string(index=False))
     print(f"\nSaved: {out}")
+    print(f"Figure: {fig_path}")
+
+
+def _plot_result(result: pd.DataFrame, path: Path) -> None:
+    metrics = result.iloc[0]
+    labels = ["Ann. spread", "Sharpe", "Hit rate", "Top bucket hit"]
+    values = [
+        metrics["ann_spread"],
+        metrics["sharpe"],
+        metrics["hit_rate"],
+        metrics["event_hit_rate"],
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    colors = ["#337a5b", "#3b6f9e", "#64748b", "#64748b"]
+    ax.bar(labels, values, color=colors)
+    ax.axhline(0, color="black", linewidth=0.8)
+    ax.set_title(f"Retail Attention x Short Crowding Backtest: {metrics['signal']}")
+    ax.set_ylabel("Metric value")
+    ax.grid(axis="y", alpha=0.2)
+    fig.tight_layout()
+    fig.savefig(path, dpi=140, bbox_inches="tight")
+    plt.close(fig)
 
 
 if __name__ == "__main__":

@@ -121,6 +121,7 @@ class FamaMacBeth:
         self.controls = control_panels or {}
         self.nw_lags = nw_lags
         self.min_stocks = min_stocks
+        self._signal_name = "signal"
 
     # ── Main regression ───────────────────────────────────────────────────────
 
@@ -135,6 +136,7 @@ class FamaMacBeth:
         The signal is cross-sectionally standardised before each regression.
         Controls are also standardised.
         """
+        self._signal_name = signal_name
         common_dates = self.returns.index.intersection(self.signal.index)
         betas: dict = {}
         r2s: list[float] = []
@@ -255,18 +257,19 @@ class FamaMacBeth:
         if len(common) < self.min_stocks:
             return None
 
-        data = {"ret": ret[common], signal_name: self._standardize(sig[common])}
+        data = {"ret": ret[common], self._signal_name: self._standardize(sig[common])}
 
         for ctrl_name, ctrl_panel in self.controls.items():
             if date not in ctrl_panel.index:
+                data[ctrl_name] = pd.Series(0.0, index=common)
                 continue
-            ctrl = ctrl_panel.loc[date].reindex(common).dropna()
-            if len(ctrl) < self.min_stocks:
-                continue
-            data[ctrl_name] = self._standardize(ctrl.reindex(common))
+            ctrl = ctrl_panel.loc[date].reindex(common)
+            if ctrl.notna().sum() < self.min_stocks:
+                data[ctrl_name] = pd.Series(0.0, index=common)
+            else:
+                data[ctrl_name] = self._standardize(ctrl).fillna(0.0)
 
         df = pd.DataFrame(data, index=common).dropna()
-        signal_name_key = [k for k in data if k != "ret"][0]
         # Keep only rows where all columns are present
         return df if len(df) >= self.min_stocks else None
 
