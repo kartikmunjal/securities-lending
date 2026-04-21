@@ -28,6 +28,8 @@ def main() -> None:
     parser.add_argument("--alt-factor-dir", required=True)
     parser.add_argument("--signal", default="borrow_stress_x_wsb_attention")
     parser.add_argument("--return-col", default="ret_fwd_5d")
+    parser.add_argument("--min-names", type=int, default=20)
+    parser.add_argument("--n-quantiles", type=int, default=5)
     parser.add_argument("--out", default="data/results/retail_squeeze_backtest.csv")
     args = parser.parse_args()
 
@@ -39,6 +41,8 @@ def main() -> None:
         merged,
         signal_col=args.signal,
         return_col=args.return_col,
+        min_names=args.min_names,
+        n_quantiles=args.n_quantiles,
     )
 
     out = Path(args.out)
